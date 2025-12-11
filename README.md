@@ -1,4 +1,4 @@
-# ConnectCraft Suit
+# Net Investigator
 > [!CAUTION]
 > This project is being updated from ionic to flutter.
 
