@@ -18,7 +18,7 @@ class _MyAppState extends State<MyApp> {
   void _toggleTheme() {
     setState(() {
       if (_themeMode == ThemeMode.system) {
-        final brightness = MediaQueryData.fromView(View.of(context)).platformBrightness;
+        final brightness = MediaQuery.platformBrightnessOf(context);
         _themeMode = brightness == Brightness.light ? ThemeMode.dark : ThemeMode.light;
       } else {
         _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;

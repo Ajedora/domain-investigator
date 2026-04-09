@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:domain_investigator/services/whois_service.dart';
+import 'package:domain_investigator/services/db_service.dart';
+import 'package:domain_investigator/models/whois_history.dart';
 
 class HomePage extends StatefulWidget {
   final VoidCallback onThemeToggle;
@@ -17,6 +19,7 @@ class _HomePageState extends State<HomePage>
 
   bool _isLoading = false;
   String _data = '';
+  List<WhoisHistory> _historyList = [];
 
   late AnimationController _animController;
   late Animation<double> _fadeAnimation;
@@ -33,6 +36,19 @@ class _HomePageState extends State<HomePage>
       curve: Curves.easeIn,
     );
     _animController.forward();
+    _loadHistory();
+  }
+
+  Future<void> _loadHistory() async {
+    final history = await DatabaseService.instance.getAllHistory();
+    setState(() {
+      _historyList = history;
+    });
+  }
+
+  Future<void> _clearHistory() async {
+    await DatabaseService.instance.clearAllHistory();
+    _loadHistory();
   }
 
   @override
@@ -55,6 +71,13 @@ class _HomePageState extends State<HomePage>
     FocusScope.of(context).unfocus(); // dismiss keyboard
 
     final result = await _whoisService.lookup(domain);
+
+    if (!result.startsWith('Lo siento')) {
+       await DatabaseService.instance.insertHistory(
+          WhoisHistory(domain: domain, data: result, timestamp: DateTime.now())
+       );
+       await _loadHistory();
+    }
 
     setState(() {
       _data = result;
@@ -84,6 +107,11 @@ class _HomePageState extends State<HomePage>
         centerTitle: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: _historyList.isNotEmpty ? _clearHistory : null,
+            tooltip: 'Borrar Historial',
+          ),
+          IconButton(
             icon: Icon(
               Theme.of(context).brightness == Brightness.dark
                   ? Icons.light_mode
@@ -108,7 +136,7 @@ class _HomePageState extends State<HomePage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (_data.isEmpty && !_isLoading)
+                    if (_data.isEmpty && !_isLoading && _historyList.isEmpty)
                       Center(
                         child: Padding(
                           padding: const EdgeInsets.only(top: 80.0),
@@ -121,7 +149,7 @@ class _HomePageState extends State<HomePage>
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'Esta app usa el protocolo WHOIS para obtener la información del dominio.',
+                                'Esta app usa el protocolo WHOIS para obtener la información del dominio. Guarda tus búsquedas aquí.',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.grey.shade600,
@@ -131,6 +159,40 @@ class _HomePageState extends State<HomePage>
                             ],
                           ),
                         ),
+                      ),
+                    if (_data.isEmpty && !_isLoading && _historyList.isNotEmpty)
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _historyList.length,
+                        itemBuilder: (context, index) {
+                          final item = _historyList[index];
+                          return Card(
+                            elevation: 2,
+                            color: Theme.of(context).colorScheme.surface,
+                            margin: const EdgeInsets.only(bottom: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: ListTile(
+                              leading: const Icon(Icons.history),
+                              title: Text(item.domain, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Text(
+                                '${item.timestamp.day}/${item.timestamp.month}/${item.timestamp.year} ${item.timestamp.hour}:${item.timestamp.minute.toString().padLeft(2, '0')}',
+                                style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                              ),
+                              trailing: Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.primary),
+                              onTap: () {
+                                _searchController.text = item.domain;
+                                setState(() {
+                                  _data = item.data;
+                                  _animController.reset();
+                                  _animController.forward();
+                                });
+                              },
+                            ),
+                          );
+                        },
                       ),
                     if (_data.isNotEmpty)
                       Card(
