@@ -10,13 +10,14 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final WhoisService _whoisService = WhoisService();
-  
+
   bool _isLoading = false;
   String _data = '';
-  
+
   late AnimationController _animController;
   late Animation<double> _fadeAnimation;
 
@@ -27,7 +28,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
-    _fadeAnimation = CurvedAnimation(parent: _animController, curve: Curves.easeIn);
+    _fadeAnimation = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeIn,
+    );
     _animController.forward();
   }
 
@@ -72,7 +76,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Whois',
+          'WHOIS',
           style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1.2),
         ),
         elevation: 0,
@@ -92,11 +96,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ),
       body: Column(
         children: [
-          if (_isLoading)
-            const LinearProgressIndicator(
-              minHeight: 3,
-            ),
-            
+          if (_isLoading) const LinearProgressIndicator(minHeight: 3),
+
           // Results Section
           Expanded(
             child: SingleChildScrollView(
@@ -146,10 +147,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.feed_outlined, color: Theme.of(context).colorScheme.secondary),
+                                  Icon(
+                                    Icons.feed_outlined,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.secondary,
+                                  ),
                                   const SizedBox(width: 8),
                                   const Text(
-                                    'Resultado WHOIS',
+                                    'Resultado',
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
@@ -157,16 +163,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                   ),
                                 ],
                               ),
-                              const Divider(height: 30, color: Colors.white12),
-                              SelectableText(
-                                _data,
-                                style: TextStyle(
-                                  fontFamily: 'monospace',
-                                  fontSize: 14,
-                                  height: 1.4,
-                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade300 : Colors.grey.shade800,
-                                ),
-                              ),
+                              _buildParsedWhois(_data),
                             ],
                           ),
                         ),
@@ -192,7 +189,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   color: Colors.black.withOpacity(0.4),
                   blurRadius: 10,
                   offset: const Offset(0, -2), // Slight upward shadow
-                )
+                ),
               ],
             ),
             child: Row(
@@ -204,11 +201,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                       hintText: 'dominio.com',
                       hintStyle: TextStyle(
                         color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.grey.shade700 // Lighter grey in dark mode
+                            ? Colors
+                                  .grey
+                                  .shade700 // Lighter grey in dark mode
                             : Colors.grey.shade400, // Light grey in light mode
                       ),
                       prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                      suffixIcon: _searchController.text.isNotEmpty 
+                      suffixIcon: _searchController.text.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear, color: Colors.grey),
                               onPressed: _clearData,
@@ -240,12 +239,88 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     icon: const Icon(Icons.send_rounded, color: Colors.white),
                     onPressed: _isLoading ? null : _onSearch,
                   ),
-                )
+                ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildParsedWhois(String data) {
+    if (data.trim().isEmpty) return const SizedBox.shrink();
+
+    final lines = data.split('\n');
+    List<Widget> children = [];
+
+    // Título de sección (en reemplazo del Divider superior)
+    children.add(const Divider(height: 30, color: Colors.white12));
+
+    for (String line in lines) {
+      if (line.trim().isEmpty) {
+        children.add(const SizedBox(height: 8));
+        continue;
+      }
+
+      int colonIdx = line.indexOf(':');
+      if (colonIdx != -1 && colonIdx < 50) {
+        String key = line.substring(0, colonIdx).trim();
+        String value = line.substring(colonIdx + 1).trim();
+
+        children.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: SelectableText.rich(
+              TextSpan(
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.4,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey.shade300
+                      : Colors.grey.shade800,
+                ),
+                children: [
+                  TextSpan(
+                    text: '$key:\n',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  TextSpan(
+                    text: value,
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      } else {
+        // Plain text (disclaimers, comments, ASCII lines)
+        children.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4.0),
+            child: SelectableText(
+              line.trim(),
+              style: TextStyle(
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.grey.shade500
+                    : Colors.grey.shade500,
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
     );
   }
 }
