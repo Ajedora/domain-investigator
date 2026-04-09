@@ -72,7 +72,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          '¿Quién es?',
+          'Whois',
           style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1.2),
         ),
         elevation: 0,
@@ -92,64 +92,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ),
       body: Column(
         children: [
-          // Search Bar Section
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.4),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                )
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'dominio.com',
-                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                      suffixIcon: _searchController.text.isNotEmpty 
-                          ? IconButton(
-                              icon: const Icon(Icons.clear, color: Colors.grey),
-                              onPressed: _clearData,
-                            )
-                          : null,
-                      filled: true,
-                      fillColor: Theme.of(context).scaffoldBackgroundColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    textInputAction: TextInputAction.search,
-                    onSubmitted: (_) => _onSearch(),
-                    onChanged: (text) {
-                      setState(() {}); // to trigger suffix icon visibility
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.send_rounded, color: Colors.white),
-                    onPressed: _isLoading ? null : _onSearch,
-                  ),
-                )
-              ],
-            ),
-          ),
-          
           if (_isLoading)
             const LinearProgressIndicator(
               minHeight: 3,
@@ -232,6 +174,74 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   ],
                 ),
               ),
+            ),
+          ),
+
+          // Search Bar Section (Moved to bottom)
+          Container(
+            padding: EdgeInsets.only(
+              left: 16.0,
+              right: 16.0,
+              top: 12.0,
+              bottom: 12.0 + MediaQuery.of(context).padding.bottom,
+            ),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.4),
+                  blurRadius: 10,
+                  offset: const Offset(0, -2), // Slight upward shadow
+                )
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'dominio.com',
+                      hintStyle: TextStyle(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey.shade700 // Lighter grey in dark mode
+                            : Colors.grey.shade400, // Light grey in light mode
+                      ),
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      suffixIcon: _searchController.text.isNotEmpty 
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, color: Colors.grey),
+                              onPressed: _clearData,
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: Theme.of(context).scaffoldBackgroundColor,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: (_) => _onSearch(),
+                    onChanged: (text) {
+                      setState(() {}); // to trigger suffix icon visibility
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.send_rounded, color: Colors.white),
+                    onPressed: _isLoading ? null : _onSearch,
+                  ),
+                )
+              ],
             ),
           ),
         ],
