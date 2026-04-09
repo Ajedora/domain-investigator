@@ -12,12 +12,15 @@ class WhoisHistory {
   });
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = <String, dynamic>{
       'domain': domain,
       'data': data,
       'timestamp': timestamp.toIso8601String(),
     };
+    if (id != null) {
+      map['id'] = id;
+    }
+    return map;
   }
 
   factory WhoisHistory.fromMap(Map<String, dynamic> map) {

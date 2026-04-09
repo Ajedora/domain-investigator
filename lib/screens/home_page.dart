@@ -46,9 +46,13 @@ class _HomePageState extends State<HomePage>
     });
   }
 
-  Future<void> _clearHistory() async {
-    await DatabaseService.instance.clearAllHistory();
-    _loadHistory();
+  Future<void> _deleteCurrentResult() async {
+    final domain = _searchController.text.trim();
+    if (domain.isNotEmpty) {
+      await DatabaseService.instance.deleteHistory(domain);
+      _clearData();
+      _loadHistory();
+    }
   }
 
   @override
@@ -91,13 +95,35 @@ class _HomePageState extends State<HomePage>
       _searchController.clear();
       _data = '';
       _animController.reset();
+      _animController.forward();
+    });
+  }
+
+  void _clearInput() {
+    setState(() {
+      _searchController.clear();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return WillPopScope(
+      onWillPop: () async {
+        if (_data.isNotEmpty) {
+          _clearData();
+          return false;
+        }
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: _data.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: _clearData,
+                  tooltip: 'Volver al Inicio',
+                )
+              : null,
         title: const Text(
           'WHOIS',
           style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1.2),
@@ -106,11 +132,12 @@ class _HomePageState extends State<HomePage>
         backgroundColor: Colors.transparent,
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            onPressed: _historyList.isNotEmpty ? _clearHistory : null,
-            tooltip: 'Borrar Historial',
-          ),
+          if (_data.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              onPressed: _deleteCurrentResult,
+              tooltip: 'Borrar este Resultado',
+            ),
           IconButton(
             icon: Icon(
               Theme.of(context).brightness == Brightness.dark
@@ -272,7 +299,7 @@ class _HomePageState extends State<HomePage>
                       suffixIcon: _searchController.text.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear, color: Colors.grey),
-                              onPressed: _clearData,
+                              onPressed: _clearInput,
                             )
                           : null,
                       filled: true,
@@ -306,6 +333,7 @@ class _HomePageState extends State<HomePage>
             ),
           ),
         ],
+      ),
       ),
     );
   }

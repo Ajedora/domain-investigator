@@ -97,6 +97,11 @@ CREATE TABLE history (
     return await db.delete('history');
   }
 
+  Future<int> deleteHistory(String domain) async {
+    final db = await instance.database;
+    return await db.delete('history', where: 'domain = ?', whereArgs: [domain]);
+  }
+
   Future close() async {
     final db = await instance.database;
     db.close();
