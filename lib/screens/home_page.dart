@@ -132,6 +132,11 @@ class _HomePageState extends State<HomePage>
         backgroundColor: Colors.transparent,
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            onPressed: () => _showHelpDialog(context),
+            tooltip: 'Ayuda y Legal',
+          ),
           if (_data.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_outline),
@@ -411,6 +416,49 @@ class _HomePageState extends State<HomePage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: children,
+    );
+  }
+
+  void _showHelpDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
+              const Text('Ayuda e Info Legal', style: TextStyle(fontSize: 18)),
+            ],
+          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Funcionamiento:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                const Text('Domain Investigator realiza consultas recursivas nativas (Sockets TCP) a los servidores IANA y registradores globales para obtener datos del dominio sin depender de APIs de terceros.', style: TextStyle(fontSize: 14, height: 1.3)),
+                const SizedBox(height: 16),
+                const Text('Dependencias Utilizadas:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                const Text('• flutter / dart:io (Core frameworks)\n• sqflite & sqflite_common_ffi (Almacenamiento)\n• path (Manejo de rutas locales)', style: TextStyle(fontSize: 14, height: 1.3)),
+                const SizedBox(height: 16),
+                const Text('Términos Legales y Privacidad:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                const Text('La información resultante recae bajo las normas y responsabilidades de ICANN y los registradores administradores ("AS-IS"). Esta aplicación:\n\n1. NO rastrea tus consultas ni vende tu información.\n2. Almacena tu historial de manera 100% aislada de forma local en tu dispositivo mediante SQLite.\n3. Provee la red directamente hacia los servidores oficiales para evadir rastreo comercial de web tools.', style: TextStyle(fontSize: 14, height: 1.3)),
+              ]
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('ENTENDIDO', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
     );
   }
 }
