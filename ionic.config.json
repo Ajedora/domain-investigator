@@ -1,7 +1,0 @@
-{
-  "name": "Whois",
-  "integrations": {
-    "capacitor": {}
-  },
-  "type": "angular"
-}
